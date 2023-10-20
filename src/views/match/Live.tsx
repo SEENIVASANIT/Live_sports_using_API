@@ -1,0 +1,98 @@
+import React, { useContext, useEffect } from "react";
+import { Match, Matches } from "../../types/matches";
+import Live_games from "./Live_games";
+import { getMatches } from "../../utils/apiUtils";
+import { UserContext } from "../../context/user";
+
+const fetchMatches = async (setMatchesCB: (data: Matches) => void) => {
+  const data: Matches = await getMatches();
+  const sorted = data.matches.sort((a, b) => {
+    return b.isRunning ? 1 : -1;
+  });
+  setMatchesCB({ matches: sorted });
+};
+
+function Live() {
+  const userData = useContext(UserContext);
+  console.log("userData", userData);
+  const [matches, setMatches] = React.useState<Matches>({ matches: [] });
+  const [filteredMatches, setFilteredMatches] = React.useState<Match[]>([]);
+  const [remainingMatches, setRemainingMatches] = React.useState<Match[]>([]);
+
+  useEffect(() => {
+    fetchMatches(setMatches);
+  }, []);
+
+  const filterMatches = () => {
+    if (userData.user) {
+      const userSports = userData.user.preferences.sports
+        ? userData?.user?.preferences.sports.map((sport) => sport.name)
+        : [];
+      const userTeams = userData.user.preferences.teams
+        ? userData?.user?.preferences.teams.map((team) => team.id)
+        : [];
+      const filtered = matches.matches.filter(
+        (match) =>
+          userSports.includes(match.sportName) ||
+          userTeams.includes(match.teams[0].id || match.teams[1].id)
+      );
+      const remaining = matches.matches.filter(
+        (match) =>
+          !filtered.includes(match) &&
+          (userData.user?.preferences.matches?.includes(match.id) ||
+            match.isRunning)
+      );
+      setFilteredMatches(filtered);
+      setRemainingMatches(remaining);
+    }
+  };
+
+  useEffect(() => {
+    filterMatches();
+  }, [matches, userData]);
+
+  return (
+    <div className="w-full flex flex-col items-center px-4">
+      <h1 className="text-4xl text-gray-500 font-semibold text-left w-full ml-6 my-3 font-serif">
+        Live Games
+      </h1>
+      <div className="flex w-full gap-2 overflow-x-scroll ">
+        {userData.user ? (
+          <>
+            {filteredMatches.map((match) => (
+              <Live_games
+                key={match.id}
+                Favorite={true}
+
+game_playing={match.isRunning}
+                id={match.id}
+              />
+            ))}
+            {remainingMatches.map((match) => (
+              <Live_games
+                key={match.id}
+                Favorite={false}
+                
+game_playing={match.isRunning}
+                id={match.id}
+              />
+            ))}
+          </>
+        ) : (
+          <>
+            {matches.matches.map((match) => (
+              <Live_games
+                key={match.id}
+                Favorite={false}
+                game_playing={match.isRunning}
+                id={match.id}
+              />
+            ))}
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+export default Live;
