@@ -1,5 +1,5 @@
 import React, { useContext, useEffect } from "react";
-import NaveBar from "../../components/Navbar";
+
 import Live from "../match/Live";
 import NewsSection from "../articles";
 import { UserContext } from "../../context/user";
@@ -21,7 +21,7 @@ function Dashboard() {
     <>
       <div className="h-screen overflow-y-auto  bg-gray-100 dark:bg-slate-800 m-0 p-0">
         <ErrorBoundary>
-          <NaveBar />
+         
         </ErrorBoundary>
         <div className="flex w-full justify-center">
           <ErrorBoundary>
